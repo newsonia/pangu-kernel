@@ -4,7 +4,7 @@ echo   Pangu OS 0.1 完整构建脚本 (Windows 纯原生)
 echo ==============================================
 echo.
 
-set GAME=game_0.1.1.asm
+set GAME=game_0.1.2.asm
 set IMAGE=os.flp
 
 :: 1. 合并内核+游戏

@@ -2,11 +2,11 @@ org 0x0000
 bits 16
 
 ; ==============================
-; Pangu Kernel 0.0.8
+; Pangu Kernel 0.0.9
 ; Features:
-; 1. Add auto terminal prompt "$ "
-; 2. Keep all functions from 0.0.7
-; 3. Prompt shows after new line and clear screen
+; 1. Prevent backspace from deleting prompt "$ "
+; 2. Keep all functions from 0.0.8
+; 3. Terminal prompt works normally
 ; ==============================
 
 ; 段设置
@@ -32,7 +32,7 @@ col db 0
 ; 主循环
 ;--------------------------
 kernel_main:
-    call getkey        ; 调用按键读取函数，字符存入al
+    call getkey
 
     cmp al, 'c'
     je  do_clear
@@ -47,11 +47,11 @@ kernel_main:
     cmp bl, 79
     je  enter_line
 
-    call putc          ; 输出普通字符
+    call putc
     jmp kernel_main
 
 ;--------------------------
-; 换行处理 + 自动输出提示符
+; 换行 + 输出提示符
 ;--------------------------
 enter_line:
     mov byte [col], 0
@@ -61,17 +61,18 @@ enter_line:
     mul bl
     mov di, ax
 
-    ; 打印终端提示符
     mov si, prompt
     call print_str
     jmp kernel_main
 
 ;--------------------------
-; 退格处理
+; 退格优化：禁止删除提示符
+; 提示符占2个字符位置，col < 2 就不能退格
 ;--------------------------
 backspace:
-    cmp byte [col], 0
-    je  kernel_main
+    cmp byte [col], 2    ; 光标在前2位（提示符区域），直接返回
+    jle kernel_main
+
     dec byte [col]
     sub di, 2
     mov byte [es:di], 0
@@ -86,14 +87,12 @@ do_clear:
     mov di, 0
     mov byte [row], 0
     mov byte [col], 0
-    ; 清屏后重新显示提示符
     mov si, prompt
     call print_str
     jmp kernel_main
 
 ;--------------------------
-; 按键读取函数 getkey
-; 输出：al = 读取到的按键ASCII码
+; 按键读取
 ;--------------------------
 getkey:
     mov ah, 0x00
@@ -101,8 +100,7 @@ getkey:
     ret
 
 ;--------------------------
-; 单字符输出 putc
-; 输入：al = 待打印字符
+; 单字符输出
 ;--------------------------
 putc:
     mov [es:di], al
@@ -112,8 +110,7 @@ putc:
     ret
 
 ;--------------------------
-; 字符串输出 print_str
-; 输入：si = 字符串首地址
+; 字符串输出
 ;--------------------------
 print_str:
     lodsb
@@ -125,7 +122,7 @@ print_str:
     ret
 
 ;--------------------------
-; 清屏函数
+; 清屏
 ;--------------------------
 clear_screen:
     push di
@@ -142,5 +139,5 @@ clear_loop:
 ;--------------------------
 ; 字符串数据
 ;--------------------------
-msg_kernel db 'Pangu Kernel 0.0.8', 0
-prompt     db '$ ', 0   ; 终端提示符
+msg_kernel db 'Pangu Kernel 0.0.9', 0
+prompt     db '$ ', 0

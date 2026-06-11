@@ -10,11 +10,11 @@ mov es, ax
 call clear_screen       ; 开机清屏
 
 ; ==============================
-; ?? 演示：打印函数怎么用
+; Pangu Kernel 0.0.6
+; Add putc function for single character output
 ; ==============================
 mov di, 0          ; 从屏幕第一行开始
-
-mov si, msg_kernel   ; 打印第1句
+mov si, msg_kernel ; 打印欢迎字符串
 call print_str
 
 ; 变量
@@ -41,12 +41,13 @@ kernel_main:
     cmp bl, 79
     je  enter_line
 
-    mov [es:di], al
-    mov byte [es:di+1], 0x0E
-    add di, 2
-    inc byte [col]
+    ; 调用单字符打印函数
+    call putc
     jmp kernel_main
 
+;--------------------------
+; 换行处理
+;--------------------------
 enter_line:
     mov byte [col], 0
     inc byte [row]
@@ -56,6 +57,9 @@ enter_line:
     mov di, ax
     jmp kernel_main
 
+;--------------------------
+; 退格处理
+;--------------------------
 backspace:
     cmp byte [col], 0
     je  kernel_main
@@ -65,6 +69,9 @@ backspace:
     mov byte [es:di+1], 0x00
     jmp kernel_main
 
+;--------------------------
+; 按键 c 清屏
+;--------------------------
 do_clear:
     call clear_screen
     mov di, 0
@@ -73,19 +80,26 @@ do_clear:
     jmp kernel_main
 
 ;--------------------------
-; ? 简单打印函数（核心）
-; 用法：
-; mov si, 字符串
-; call print_str
+; 单字符打印函数 putc
+; 输入：al = 待打印字符
+;--------------------------
+putc:
+    mov [es:di], al
+    mov byte [es:di+1], 0x0E  ; 黄色字符
+    add di, 2
+    inc byte [col]
+    ret
+
+;--------------------------
+; 字符串打印函数 print_str
+; 输入：si = 字符串首地址
 ;--------------------------
 print_str:
     lodsb
     test al, al
     je  .end
 
-    mov [es:di], al
-    mov byte [es:di+1], 0x0A
-    add di, 2
+    call putc   ; 复用单字符打印
     jmp print_str
 .end:
     ret
@@ -106,6 +120,6 @@ clear_loop:
     ret
 
 ;--------------------------
-; 字符串（可以随便加）
+; 字符串数据
 ;--------------------------
-msg_kernel db 'Pangu Kernel 0.0.5', 0
+msg_kernel db 'Pangu Kernel 0.0.6', 0

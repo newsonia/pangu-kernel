@@ -2,13 +2,13 @@ org 0x0000
 bits 16
 
 ; ==============================
-; Pangu Kernel 0.0.11
+; Pangu Kernel 0.0.12
 ; Features:
-; 1. Add double protection for line length (max 80 chars per line)
-; 2. Green for system text, yellow for user input
-; 3. Auto prompt "$ " after new line and clear screen
-; 4. Prevent backspace from deleting prompt
-; 5. Press 'c' to clear screen
+; 1. Change clear shortcut to Ctrl + c
+; 2. Normal 'c' key can be typed normally
+; 3. Double protection for 80-char line limit
+; 4. Different colors for system text and user input
+; 5. Protect prompt from backspace
 ; ==============================
 
 ; 段设置
@@ -34,9 +34,11 @@ col db 0
 ; 主循环
 ;--------------------------
 kernel_main:
-    call getkey
+    call getkey        ; 读取按键
 
-    cmp al, 'c'
+    ; ========== 改为 Ctrl + c 清屏 ==========
+    ; al=03 代表 Ctrl+c
+    cmp al, 0x03
     je  do_clear
 
     cmp al, 0x0D
@@ -81,7 +83,7 @@ backspace:
     jmp kernel_main
 
 ;--------------------------
-; 按 c 清屏
+; 清屏处理
 ;--------------------------
 do_clear:
     call clear_screen
@@ -93,7 +95,9 @@ do_clear:
     jmp kernel_main
 
 ;--------------------------
-; 按键读取
+; 按键读取 getkey
+; 输出：al = 按键ASCII
+; Ctrl + c 会返回 al = 0x03
 ;--------------------------
 getkey:
     mov ah, 0x00
@@ -102,10 +106,8 @@ getkey:
 
 ;--------------------------
 ; 单字符输出（用户输入 黄色）
-; 新增：行长度二次校验
 ;--------------------------
 putc:
-    ; 二次判断，防止超出80列
     mov bl, [col]
     cmp bl, 79
     je  enter_line
@@ -149,5 +151,5 @@ clear_loop:
 ;--------------------------
 ; 字符串数据
 ;--------------------------
-msg_kernel db 'Pangu Kernel 0.0.11', 0
+msg_kernel db 'Pangu Kernel 0.0.12', 0
 prompt     db '$ ', 0

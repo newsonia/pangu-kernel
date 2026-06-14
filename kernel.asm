@@ -2,7 +2,8 @@ org 0x0000
 bits 16
 
 ; ==============================
-; Pangu Kernel 0.0.12
+; XuanWu Kernel 0.0.12
+; 玄乌内核
 ; Features:
 ; 1. Change clear shortcut to Ctrl + c
 ; 2. Normal 'c' key can be typed normally
@@ -149,7 +150,7 @@ clear_loop:
     ret
 
 ;--------------------------
-; 字符串数据
+; 字符串数据（已更名 玄乌内核）
 ;--------------------------
-msg_kernel db 'Pangu Kernel 0.0.12', 0
+msg_kernel db 'XuanWu Kernel 0.0.12', 0
 prompt     db '$ ', 0
